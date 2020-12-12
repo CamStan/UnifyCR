@@ -24,18 +24,22 @@ export UNIFYFS_TEST_RUN_SCRIPT=$UNIFYFS_BUILD_DIR/t/test_run_env.sh
 #
 if test -n "$(which jsrun 2>/dev/null)"; then
     JOB_RUN_COMMAND="jsrun -r1 -n1"
+    JOB_MULTI_RUN_COMMAND="jsrun -r1 -n1 -c4 -a4"
 elif test -n "$(which srun 2>/dev/null)"; then
     JOB_RUN_COMMAND="srun -n1 -N1"
+    JOB_MULTI_RUN_COMMAND="srun -n4 -N1"
 elif test -n "$(which mpirun 2>/dev/null)"; then
     JOB_RUN_COMMAND="mpirun -np 1"
+    JOB_MULTI_RUN_COMMAND="mpirun -np 4"
 fi
-if test -z "$JOB_RUN_COMMAND"; then
+if test -z "$JOB_RUN_COMMAND" || test -z "$JOB_MULTI_RUN_COMMAND"; then
     echo >&2 "Failed to find a suitable parallel job launcher"
     echo >&2 "Do you need to install OpenMPI or SLURM?"
     return 1
 fi
 #echo >&2 "Using JOB_RUN_COMMAND: $JOB_RUN_COMMAND"
 export JOB_RUN_COMMAND
+export JOB_MULTI_RUN_COMMAND
 
 #
 # Set paths to executables

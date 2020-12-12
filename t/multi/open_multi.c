@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -7,13 +8,16 @@
 #include <errno.h>
 
 #include "mpi.h"
+#include "t/lib/tap.h"
+#include "t/lib/testutil.h"
 #include "unifyfs.h"
 
 int mpi_sum(int val)
 {
-    int sum;
-    MPI_Allreduce(&val, &sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    return sum;
+    //int sum;
+    //MPI_Allreduce(&val, &sum, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    //return sum;
+    return 1;
 }
 
 off_t getsize(char* file)
@@ -29,7 +33,8 @@ off_t getsize(char* file)
 
 int main(int argc, char* argv[])
 {
-    char mountpoint[] = "/unifyfs";
+    //char mountpoint[] = "/unifyfs";
+    char* mountpoint = testutil_get_mount_point();
 
     MPI_Init(&argc, &argv);
 
@@ -37,10 +42,26 @@ int main(int argc, char* argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &ranks);
 
-    int ret = unifyfs_mount(mountpoint, rank, ranks, 0);
+    if (rank == 0) {
+        plan(NO_PLAN);
+    }
 
-    char file[256];
-    sprintf(file, "%s/testfile", mountpoint);
+    int ret = unifyfs_mount(mountpoint, rank, ranks, 0);
+    if (rank == 0) {
+        ok(ret == 0, "%s:%d unifyfs_mount at %s (rc=%d)",
+           __FILE__, __LINE__, mountpoint, ret);
+
+        if (ret != 0) {
+            BAIL_OUT("unifyfs_mount failed in multi_open.c");
+        }
+    }
+
+    //char file[256];
+    //sprintf(file, "%s/testfile", mountpoint);
+    char file[64];
+    if (rank == 0) {
+        testutil_rand_path(file, sizeof(file), mountpoint);
+    }
 
     size_t bufsize = 1024*1024;
     char* buf = (char*) malloc(bufsize);
@@ -63,7 +84,11 @@ int main(int argc, char* argv[])
 
     /* one rank should win */
     int sum = mpi_sum(success);
-    if (sum != 1) {
+    //if (sum != 1) {
+    //}
+    if (rank == 0) {
+        ok(sum == 1, "%s:%d %d of %d ranks opened file %s",
+           __FILE__, __LINE__, sum, ranks, file);
     }
 
     /* all others should get EEXIST */
@@ -171,6 +196,10 @@ int main(int argc, char* argv[])
     unifyfs_unmount();
 
     MPI_Finalize();
+
+    if (rank == 0) {
+        done_testing();
+    }
 
     return 0;
 }

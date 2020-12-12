@@ -10,6 +10,7 @@ TESTS = \
 	0500-sysio-static.t \
 	0600-stdio-static.t \
 	0700-unifyfs-stage-full.t \
+	1000-multi-open.t \
 	9005-unifyfs-unmount.t \
 	9010-stop-unifyfsd.t \
 	9020-mountpoint-empty.t \
@@ -25,6 +26,7 @@ check_SCRIPTS = \
 	0500-sysio-static.t \
 	0600-stdio-static.t \
 	0700-unifyfs-stage-full.t \
+	1000-multi-open.t \
 	9005-unifyfs-unmount.t \
 	9010-stop-unifyfsd.t \
 	9020-mountpoint-empty.t \
@@ -51,6 +53,7 @@ libexec_PROGRAMS = \
 	std/stdio-static.t \
 	sys/sysio-gotcha.t \
 	sys/sysio-static.t \
+	multi/open_multi.t \
 	unifyfs_unmount.t
 
 
@@ -152,6 +155,11 @@ std_stdio_static_t_SOURCES = std/stdio_suite.h \
 std_stdio_static_t_CPPFLAGS = $(test_cppflags)
 std_stdio_static_t_LDADD = $(test_static_ldadd)
 std_stdio_static_t_LDFLAGS = $(test_static_ldflags)
+
+multi_open_multi_t_SOURCES = multi/open_multi.c
+multi_open_multi_t_CPPFLAGS = $(test_cppflags)
+multi_open_multi_t_LDADD = $(test_ldadd)
+multi_open_multi_t_LDFLAGS = $(AM_LDFLAGS)
 
 unifyfs_unmount_t_SOURCES = unifyfs_unmount.c
 unifyfs_unmount_t_CPPFLAGS = $(test_cppflags)
